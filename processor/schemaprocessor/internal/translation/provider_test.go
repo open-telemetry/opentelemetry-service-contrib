@@ -31,7 +31,6 @@ func TestInvalidHTTPProviderTests(t *testing.T) {
 		scenario string
 		url      string
 	}{
-
 		{
 			scenario: "A failed request happens",
 			url:      fmt.Sprint(s.URL, "/not/a/valid/path/1.7.0"),

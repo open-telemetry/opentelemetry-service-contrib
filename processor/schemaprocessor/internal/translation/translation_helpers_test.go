@@ -242,7 +242,6 @@ func NewExampleMetrics(tb testing.TB, at Version) pmetric.Metrics {
 				tb.Log("Unknown metric version provided", at.String())
 				tb.FailNow()
 			}
-
 		}
 	}
 	return metrics

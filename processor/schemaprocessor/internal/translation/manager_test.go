@@ -33,9 +33,7 @@ func TestRequestTranslation(t *testing.T) {
 	s := httptest.NewServer(TranslationHandler(t))
 	t.Cleanup(s.Close)
 
-	var (
-		schemaURL = fmt.Sprintf("%s/1.1.0", s.URL)
-	)
+	schemaURL := fmt.Sprintf("%s/1.1.0", s.URL)
 
 	m, err := NewManager(
 		[]string{schemaURL},
@@ -67,5 +65,4 @@ func TestRequestTranslation(t *testing.T) {
 	tn, ok = m.RequestTranslation(context.Background(), schemaURL).(*translator)
 	require.True(t, ok, "Can cast to the concrete type")
 	require.NotNil(t, tn, "Must have a valid translation")
-
 }

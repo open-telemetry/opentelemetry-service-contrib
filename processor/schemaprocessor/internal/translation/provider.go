@@ -24,9 +24,7 @@ type httpProvider struct {
 	client *http.Client
 }
 
-var (
-	_ Provider = (*httpProvider)(nil)
-)
+var _ Provider = (*httpProvider)(nil)
 
 func NewHTTPProvider(client *http.Client) Provider {
 	return &httpProvider{client: client}

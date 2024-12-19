@@ -186,9 +186,7 @@ func TestTransformerSchemaBySections(t *testing.T) {
 				require.FailNow(t, "unrecognized data type")
 				return
 			}
-
 		})
-
 	}
 }
 
@@ -315,7 +313,7 @@ func TestTransformerScopeLogSchemaPrecedence(t *testing.T) {
 				log := generateLogForTest()
 				return log
 			},
-			//want: "https://example.com/testdata/testschemas/schemaprecedence/1.0.0",
+			// want: "https://example.com/testdata/testschemas/schemaprecedence/1.0.0",
 			whichSchemaUsed: NoopSchemaUsed,
 			wantErr:         assert.NoError,
 		},
@@ -416,7 +414,7 @@ func TestTransformerScopeTraceSchemaPrecedence(t *testing.T) {
 				trace := generateTraceForTest()
 				return trace
 			},
-			//want: "https://example.com/testdata/testschemas/schemaprecedence/1.0.0",
+			// want: "https://example.com/testdata/testschemas/schemaprecedence/1.0.0",
 			whichSchemaUsed: NoopSchemaUsed,
 			wantErr:         assert.NoError,
 		},
@@ -516,7 +514,7 @@ func TestTransformerScopeMetricSchemaPrecedence(t *testing.T) {
 				metric := generateMetricForTest()
 				return metric
 			},
-			//want: "https://example.com/testdata/testschemas/schemaprecedence/1.0.0",
+			// want: "https://example.com/testdata/testschemas/schemaprecedence/1.0.0",
 			whichSchemaUsed: NoopSchemaUsed,
 			wantErr:         assert.NoError,
 		},

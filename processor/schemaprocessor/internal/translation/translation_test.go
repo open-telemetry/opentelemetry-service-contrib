@@ -95,7 +95,8 @@ func TestTranslationIteratorExact(t *testing.T) {
 				{1, 9, 0},
 				{1, 8, 0},
 				{1, 7, 0},
-			}},
+			},
+		},
 		{
 			scenario: "Unsupported / Unknown version",
 			target:   "https://opentelemetry.io/schemas/1.6.1",

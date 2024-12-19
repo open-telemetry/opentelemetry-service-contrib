@@ -19,22 +19,24 @@ import (
 // keeping the same logic path
 type nopTranslation struct{}
 
-var (
-	_ Translation = (*nopTranslation)(nil)
-)
+var _ Translation = (*nopTranslation)(nil)
 
 func (nopTranslation) SupportedVersion(_ *Version) bool {
 	return false
 }
+
 func (nopTranslation) ApplyAllResourceChanges(_ context.Context, _ alias.Resource, _ string) error {
 	return nil
 }
+
 func (nopTranslation) ApplyScopeSpanChanges(_ context.Context, _ ptrace.ScopeSpans, _ string) error {
 	return nil
 }
+
 func (nopTranslation) ApplyScopeLogChanges(_ context.Context, _ plog.ScopeLogs, _ string) error {
 	return nil
 }
+
 func (nopTranslation) ApplyScopeMetricChanges(_ context.Context, _ pmetric.ScopeMetrics, _ string) error {
 	return nil
 }

@@ -12,9 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	errNilValueProvided = errors.New("nil value provided")
-)
+var errNilValueProvided = errors.New("nil value provided")
 
 // Manager is responsible for ensuring that schemas are kept up to date
 // with the most recent version that are requested.
@@ -40,9 +38,7 @@ type manager struct {
 	translations map[string]*translator
 }
 
-var (
-	_ Manager = (*manager)(nil)
-)
+var _ Manager = (*manager)(nil)
 
 // NewManager creates a manager that will allow for management
 // of schema, the options allow for additional properties to be
