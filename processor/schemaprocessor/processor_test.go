@@ -28,14 +28,14 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/schemaprocessor/internal/translation"
 )
 
-func newTestTransformer(t *testing.T) *transformer {
-	trans, err := newTransformer(context.Background(), newDefaultConfiguration(), processor.Settings{
+func newTestTransformer(t *testing.T) *schemaprocessor {
+	trans, err := newSchemaProcessor(context.Background(), newDefaultConfiguration(), processor.Settings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger:        zaptest.NewLogger(t),
 			MeterProvider: noop.MeterProvider{},
 		},
 	})
-	require.NoError(t, err, "Must not error when creating default transformer")
+	require.NoError(t, err, "Must not error when creating default schemaprocessor")
 	return trans
 }
 
@@ -85,17 +85,17 @@ func pmetricsFromJSON(t *testing.T, path string) pmetric.Metrics {
 	return inSignals
 }
 
-func buildTestTransformer(t *testing.T, targetURL string) *transformer {
+func buildTestTransformer(t *testing.T, targetURL string) *schemaprocessor {
 	t.Helper()
 	defaultConfig := newDefaultConfiguration()
 	castedConfig := defaultConfig.(*Config)
 	castedConfig.Targets = []string{targetURL}
-	transform, err := newTransformer(context.Background(), castedConfig, processor.Settings{
+	transform, err := newSchemaProcessor(context.Background(), castedConfig, processor.Settings{
 		TelemetrySettings: component.TelemetrySettings{
 			Logger: zaptest.NewLogger(t),
 		},
 	})
-	require.NoError(t, err, "Must not error when creating transformer")
+	require.NoError(t, err, "Must not error when creating schemaprocessor")
 	err = transform.manager.SetProviders(translation.NewTestProvider(&f))
 	require.NoError(t, err)
 	return transform
@@ -319,12 +319,12 @@ func TestTransformerScopeLogSchemaPrecedence(t *testing.T) {
 			defaultConfig := newDefaultConfiguration()
 			castedConfig := defaultConfig.(*Config)
 			castedConfig.Targets = []string{"https://example.com/testdata/testschemas/schemaprecedence/1.2.0"}
-			transform, err := newTransformer(context.Background(), defaultConfig, processor.Settings{
+			transform, err := newSchemaProcessor(context.Background(), defaultConfig, processor.Settings{
 				TelemetrySettings: component.TelemetrySettings{
 					Logger: zaptest.NewLogger(t),
 				},
 			})
-			require.NoError(t, err, "Must not error when creating transformer")
+			require.NoError(t, err, "Must not error when creating schemaprocessor")
 
 			err = transform.manager.SetProviders(translation.NewTestProvider(&testdataFiles))
 			require.NoError(t, err)
@@ -420,12 +420,12 @@ func TestTransformerScopeTraceSchemaPrecedence(t *testing.T) {
 			defaultConfig := newDefaultConfiguration()
 			castedConfig := defaultConfig.(*Config)
 			castedConfig.Targets = []string{"https://example.com/testdata/testschemas/schemaprecedence/1.2.0"}
-			transform, err := newTransformer(context.Background(), defaultConfig, processor.Settings{
+			transform, err := newSchemaProcessor(context.Background(), defaultConfig, processor.Settings{
 				TelemetrySettings: component.TelemetrySettings{
 					Logger: zaptest.NewLogger(t),
 				},
 			})
-			require.NoError(t, err, "Must not error when creating transformer")
+			require.NoError(t, err, "Must not error when creating schemaprocessor")
 
 			err = transform.manager.SetProviders(translation.NewTestProvider(&testdataFiles))
 			require.NoError(t, err)
@@ -520,12 +520,12 @@ func TestTransformerScopeMetricSchemaPrecedence(t *testing.T) {
 			defaultConfig := newDefaultConfiguration()
 			castedConfig := defaultConfig.(*Config)
 			castedConfig.Targets = []string{"https://example.com/testdata/testschemas/schemaprecedence/1.2.0"}
-			transform, err := newTransformer(context.Background(), defaultConfig, processor.Settings{
+			transform, err := newSchemaProcessor(context.Background(), defaultConfig, processor.Settings{
 				TelemetrySettings: component.TelemetrySettings{
 					Logger: zaptest.NewLogger(t),
 				},
 			})
-			require.NoError(t, err, "Must not error when creating transformer")
+			require.NoError(t, err, "Must not error when creating schemaprocessor")
 
 			err = transform.manager.SetProviders(translation.NewTestProvider(&testdataFiles))
 			require.NoError(t, err)

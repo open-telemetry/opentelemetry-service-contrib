@@ -17,7 +17,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/schemaprocessor/internal/translation"
 )
 
-type transformer struct {
+type schemaprocessor struct {
 	telemetry component.TelemetrySettings
 	config    *Config
 
@@ -26,7 +26,7 @@ type transformer struct {
 	manager translation.Manager
 }
 
-func newTransformer(_ context.Context, conf component.Config, set processor.Settings) (*transformer, error) {
+func newSchemaProcessor(_ context.Context, conf component.Config, set processor.Settings) (*schemaprocessor, error) {
 	cfg, ok := conf.(*Config)
 	if !ok {
 		return nil, errors.New("invalid configuration provided")
@@ -40,7 +40,7 @@ func newTransformer(_ context.Context, conf component.Config, set processor.Sett
 		return nil, err
 	}
 
-	return &transformer{
+	return &schemaprocessor{
 		config:    cfg,
 		telemetry: set.TelemetrySettings,
 		log:       set.Logger,
@@ -48,7 +48,7 @@ func newTransformer(_ context.Context, conf component.Config, set processor.Sett
 	}, nil
 }
 
-func (t transformer) processLogs(ctx context.Context, ld plog.Logs) (plog.Logs, error) {
+func (t schemaprocessor) processLogs(ctx context.Context, ld plog.Logs) (plog.Logs, error) {
 	for rl := 0; rl < ld.ResourceLogs().Len(); rl++ {
 		rLog := ld.ResourceLogs().At(rl)
 		resourceSchemaURL := rLog.SchemaUrl()
@@ -76,7 +76,7 @@ func (t transformer) processLogs(ctx context.Context, ld plog.Logs) (plog.Logs, 
 	return ld, nil
 }
 
-func (t transformer) processMetrics(ctx context.Context, md pmetric.Metrics) (pmetric.Metrics, error) {
+func (t schemaprocessor) processMetrics(ctx context.Context, md pmetric.Metrics) (pmetric.Metrics, error) {
 	for rm := 0; rm < md.ResourceMetrics().Len(); rm++ {
 		rMetric := md.ResourceMetrics().At(rm)
 		resourceSchemaURL := rMetric.SchemaUrl()
@@ -103,7 +103,7 @@ func (t transformer) processMetrics(ctx context.Context, md pmetric.Metrics) (pm
 	return md, nil
 }
 
-func (t transformer) processTraces(ctx context.Context, td ptrace.Traces) (ptrace.Traces, error) {
+func (t schemaprocessor) processTraces(ctx context.Context, td ptrace.Traces) (ptrace.Traces, error) {
 	for rt := 0; rt < td.ResourceSpans().Len(); rt++ {
 		rTrace := td.ResourceSpans().At(rt)
 		// todo(ankit) do i need to check if this is empty?
@@ -133,7 +133,7 @@ func (t transformer) processTraces(ctx context.Context, td ptrace.Traces) (ptrac
 
 // start will load the remote file definition if it isn't already cached
 // and resolve the schema translation file
-func (t *transformer) start(ctx context.Context, host component.Host) error {
+func (t *schemaprocessor) start(ctx context.Context, host component.Host) error {
 	var providers []translation.Provider
 	// Check for additional extensions that can be checked first before
 	// perfomring the http request
