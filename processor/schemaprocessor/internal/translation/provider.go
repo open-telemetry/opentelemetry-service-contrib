@@ -46,7 +46,7 @@ func (hp *httpProvider) Lookup(ctx context.Context, schemaURL string) (io.Reader
 	if err := resp.Body.Close(); err != nil {
 		return nil, err
 	}
-	if resp.StatusCode/100 != 2 {
+	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("invalid status code returned: %d", resp.StatusCode)
 	}
 	return content, nil

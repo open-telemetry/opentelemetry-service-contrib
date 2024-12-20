@@ -248,7 +248,6 @@ func (t *translator) ApplyScopeSpanChanges(ctx context.Context, scopeSpans ptrac
 					if err != nil {
 						return err
 					}
-
 				}
 				err = rev.spans.Rollback(span)
 				if err != nil {
@@ -276,7 +275,7 @@ func (t *translator) ApplyScopeMetricChanges(ctx context.Context, in pmetric.Sco
 			metric := in.Metrics().At(i)
 			switch status {
 			case Update:
-				if err := rev.all.Apply(metric); err != nil {
+				if err = rev.all.Apply(metric); err != nil {
 					return err
 				}
 				if err = rev.metrics.Apply(metric); err != nil {

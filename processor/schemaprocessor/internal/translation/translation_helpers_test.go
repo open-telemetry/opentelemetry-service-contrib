@@ -364,7 +364,6 @@ func NewExampleSpans(tb testing.TB, at Version) ptrace.Traces {
 			tb.Log("Unknown trace version provided", at.String())
 			tb.FailNow()
 		}
-
 	}
 
 	return traces
