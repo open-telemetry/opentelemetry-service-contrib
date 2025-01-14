@@ -102,7 +102,7 @@ func newScraper(conf *Config, settings receiver.Settings) *azureScraper {
 
 type azureScraper struct {
 	cred azcore.TokenCredential
-	
+
 	cfg      *Config
 	settings component.TelemetrySettings
 	// resources on which we'll collect metrics. Stored by resource id and subscription id.
@@ -230,7 +230,6 @@ func (s *azureScraper) scrape(ctx context.Context) (pmetric.Metrics, error) {
 
 			wg2.Wait()
 		}(subscriptionID)
-
 	}
 
 	wg.Wait()
@@ -284,7 +283,6 @@ func (s *azureScraper) getSubscriptions(ctx context.Context) {
 	}
 
 	s.subscriptionsUpdated = time.Now()
-	return
 }
 
 func (s *azureScraper) getResources(ctx context.Context, subscriptionID string) {
@@ -341,7 +339,6 @@ func (s *azureScraper) getResources(ctx context.Context, subscriptionID string) 
 	}
 
 	s.subscriptions[subscriptionID].resourcesUpdated = time.Now()
-	return
 }
 
 func getResourceGroupFromID(id string) string {

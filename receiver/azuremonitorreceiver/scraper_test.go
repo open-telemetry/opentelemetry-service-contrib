@@ -6,8 +6,6 @@ package azuremonitorreceiver // import "github.com/open-telemetry/opentelemetry-
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armsubscriptions"
 	"net/http"
 	"path/filepath"
 	"reflect"
@@ -19,11 +17,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
 	azfake "github.com/Azure/azure-sdk-for-go/sdk/azcore/fake"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor"
 	armmonitorfake "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor/fake"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
 	armresourcesfake "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources/fake"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armsubscriptions"
 	armsubscriptionsfake "github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armsubscriptions/fake"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
@@ -189,7 +189,7 @@ func TestAzureScraperStart(t *testing.T) {
 }
 
 func newMockSubscriptionsListPager(pages []armsubscriptions.ClientListResponse) func(options *armsubscriptions.ClientListOptions) (resp azfake.PagerResponder[armsubscriptions.ClientListResponse]) {
-	return func(options *armsubscriptions.ClientListOptions) (resp azfake.PagerResponder[armsubscriptions.ClientListResponse]) {
+	return func(_ *armsubscriptions.ClientListOptions) (resp azfake.PagerResponder[armsubscriptions.ClientListResponse]) {
 		for _, page := range pages {
 			resp.AddPage(http.StatusOK, page, nil)
 		}
@@ -198,7 +198,7 @@ func newMockSubscriptionsListPager(pages []armsubscriptions.ClientListResponse) 
 }
 
 func newMockResourcesListPager(pages []armresources.ClientListResponse) func(options *armresources.ClientListOptions) (resp azfake.PagerResponder[armresources.ClientListResponse]) {
-	return func(options *armresources.ClientListOptions) (resp azfake.PagerResponder[armresources.ClientListResponse]) {
+	return func(_ *armresources.ClientListOptions) (resp azfake.PagerResponder[armresources.ClientListResponse]) {
 		for _, page := range pages {
 			resp.AddPage(http.StatusOK, page, nil)
 		}
@@ -207,7 +207,7 @@ func newMockResourcesListPager(pages []armresources.ClientListResponse) func(opt
 }
 
 func newMockMetricsDefinitionListPager(pagesByResourceURI map[string][]armmonitor.MetricDefinitionsClientListResponse) func(resourceURI string, options *armmonitor.MetricDefinitionsClientListOptions) (resp azfake.PagerResponder[armmonitor.MetricDefinitionsClientListResponse]) {
-	return func(resourceURI string, options *armmonitor.MetricDefinitionsClientListOptions) (resp azfake.PagerResponder[armmonitor.MetricDefinitionsClientListResponse]) {
+	return func(resourceURI string, _ *armmonitor.MetricDefinitionsClientListOptions) (resp azfake.PagerResponder[armmonitor.MetricDefinitionsClientListResponse]) {
 		resourceURI = fmt.Sprintf("/%s", resourceURI) // Hack the fake API as it's not taking starting slash from called request
 		for _, page := range pagesByResourceURI[resourceURI] {
 			resp.AddPage(http.StatusOK, page, nil)
@@ -215,8 +215,9 @@ func newMockMetricsDefinitionListPager(pagesByResourceURI map[string][]armmonito
 		return
 	}
 }
+
 func newMockMetricList(listsByResourceURIAndMetricName map[string]map[string]armmonitor.MetricsClientListResponse) func(ctx context.Context, resourceURI string, options *armmonitor.MetricsClientListOptions) (resp azfake.Responder[armmonitor.MetricsClientListResponse], errResp azfake.ErrorResponder) {
-	return func(ctx context.Context, resourceURI string, options *armmonitor.MetricsClientListOptions) (resp azfake.Responder[armmonitor.MetricsClientListResponse], errResp azfake.ErrorResponder) {
+	return func(_ context.Context, resourceURI string, options *armmonitor.MetricsClientListOptions) (resp azfake.Responder[armmonitor.MetricsClientListResponse], errResp azfake.ErrorResponder) {
 		resourceURI = fmt.Sprintf("/%s", resourceURI) // Hack the fake API as it's not taking starting slash from called request
 		resp.SetResponse(http.StatusOK, listsByResourceURIAndMetricName[resourceURI][*options.Metricnames], nil)
 		return
@@ -328,7 +329,6 @@ func TestAzureScraperScrape(t *testing.T) {
 				pmetrictest.IgnoreMetricsOrder(),
 			))
 		})
-
 	}
 }
 
