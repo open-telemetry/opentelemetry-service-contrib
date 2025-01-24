@@ -36,6 +36,7 @@ type WebHook struct {
 	HealthPath              string                   `mapstructure:"health_path"`     // path for health check api. Default is /health_check
 	RequiredHeader          RequiredHeader           `mapstructure:"required_header"` // optional setting to set a required header for all requests to have
 	Secret                  string                   `mapstructure:"secret"`          // secret for webhook
+	ServiceName             string                   `mapstructure:"service_name"`    // optional name of service to use for spans
 }
 
 type RequiredHeader struct {
@@ -57,12 +58,6 @@ var (
 // Validate the configuration passed through the OTEL config.yaml
 func (cfg *Config) Validate() error {
 	var errs error
-
-	// For now, scrapers are required to be defined in the config. As tracing
-	// and other signals are added, this requirement will change.
-	if len(cfg.Scrapers) == 0 {
-		errs = multierr.Append(errs, errRequireOneScraper)
-	}
 
 	maxReadWriteTimeout, _ := time.ParseDuration("10s")
 
