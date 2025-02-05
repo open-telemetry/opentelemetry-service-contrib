@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap/confmaptest"
@@ -119,7 +120,7 @@ func TestValidate(t *testing.T) {
 						},
 						NamedConfigs: map[string]StreamConfig{
 							"some-log-group": {
-								Names: []string{"some-lg-name"},
+								Names: []*string{aws.String("some-lg-name")},
 							},
 						},
 					},
@@ -191,7 +192,7 @@ func TestLoadConfig(t *testing.T) {
 						AutodiscoverConfig: &AutodiscoverConfig{
 							Limit: 100,
 							Streams: StreamConfig{
-								Prefixes: []string{"kube-api-controller"},
+								Prefixes: []*string{aws.String("kube-api-controller")},
 							},
 						},
 					},
@@ -209,7 +210,7 @@ func TestLoadConfig(t *testing.T) {
 						AutodiscoverConfig: &AutodiscoverConfig{
 							Limit: 100,
 							Streams: StreamConfig{
-								Prefixes: []string{"kube-api-controller"},
+								Prefixes: []*string{aws.String("kube-api-controller")},
 							},
 						},
 					},
@@ -243,7 +244,7 @@ func TestLoadConfig(t *testing.T) {
 					Groups: GroupConfig{
 						NamedConfigs: map[string]StreamConfig{
 							"/aws/eks/dev-0/cluster": {
-								Names: []string{"kube-apiserver-ea9c831555adca1815ae04b87661klasdj"},
+								Names: []*string{aws.String("kube-apiserver-ea9c831555adca1815ae04b87661klasdj")},
 							},
 						},
 					},
