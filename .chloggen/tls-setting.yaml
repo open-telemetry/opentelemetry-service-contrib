@@ -1,0 +1,13 @@
+change_type: bug_fix
+
+component: dockerstatsreceiver
+
+note: "Fixes issue with TLS connection over Unix socket by properly handling TLS configuration."
+
+issues: [#33557]
+
+subtext: |
+  - The TLS settings were not properly handled for containerd daemons over Unix sockets.
+  - The updated logic ensures the TLS configuration is applied correctly, resolving malformed HTTP response errors.
+  
+change_logs: [user]
