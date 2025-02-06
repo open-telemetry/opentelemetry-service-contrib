@@ -24,6 +24,7 @@ var encodingOverrides = map[string]encoding.Encoding{
 	"":         unicode.UTF8,
 }
 
+// LookupEncoding looks up an encoding based on its name, or returns an error if the encoding is unsupported or unknown.
 func LookupEncoding(enc string) (encoding.Encoding, error) {
 	if e, ok := encodingOverrides[strings.ToLower(enc)]; ok {
 		return e, nil
