@@ -3,9 +3,14 @@
 
 package redactionprocessor // import "github.com/open-telemetry/opentelemetry-collector-contrib/processor/redactionprocessor"
 
+//nolint:gosec
 import (
 	"context"
+	"crypto/md5"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
+	"hash"
 	"regexp"
 	"sort"
 	"strings"
@@ -15,6 +20,7 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/sha3"
 )
 
 const attrValuesSeparator = ","
@@ -26,6 +32,10 @@ type redaction struct {
 	ignoreList map[string]string
 	// Attribute values blocked in a span
 	blockRegexList map[string]*regexp.Regexp
+	// Attribute keys blocked in a span
+	blockKeyRegexList map[string]*regexp.Regexp
+	// Hash function to hash blocked values
+	hashFunction HashFunction
 	// Redaction processor configuration
 	config *Config
 	// Logger
@@ -36,18 +46,25 @@ type redaction struct {
 func newRedaction(ctx context.Context, config *Config, logger *zap.Logger) (*redaction, error) {
 	allowList := makeAllowList(config)
 	ignoreList := makeIgnoreList(config)
-	blockRegexList, err := makeBlockRegexList(ctx, config)
+	blockRegexList, err := makeRegexList(ctx, config.BlockedValues)
 	if err != nil {
 		// TODO: Placeholder for an error metric in the next PR
 		return nil, fmt.Errorf("failed to process block list: %w", err)
 	}
+	blockKeysRegexList, err := makeRegexList(ctx, config.BlockedKeyPatterns)
+	if err != nil {
+		// TODO: Placeholder for an error metric in the next PR
+		return nil, fmt.Errorf("failed to process block keys list: %w", err)
+	}
 
 	return &redaction{
-		allowList:      allowList,
-		ignoreList:     ignoreList,
-		blockRegexList: blockRegexList,
-		config:         config,
-		logger:         logger,
+		allowList:         allowList,
+		ignoreList:        ignoreList,
+		blockRegexList:    blockRegexList,
+		blockKeyRegexList: blockKeysRegexList,
+		hashFunction:      config.HashFunction,
+		config:            config,
+		logger:            logger,
 	}, nil
 }
 
@@ -186,18 +203,27 @@ func (s *redaction) processAttrs(_ context.Context, attributes pcommon.Map) {
 			}
 		}
 
-		// Mask any blocked values for the other attributes
+		// Mask any blocked keys for the other attributes
 		strVal := value.Str()
+		for _, compiledRE := range s.blockKeyRegexList {
+			if match := compiledRE.MatchString(k); match {
+				toBlock = append(toBlock, k)
+				maskedValue := s.maskValue(strVal, regexp.MustCompile(".*"))
+				value.SetStr(maskedValue)
+				return true
+			}
+		}
+
+		// Mask any blocked values for the other attributes
 		var matched bool
 		for _, compiledRE := range s.blockRegexList {
-			match := compiledRE.MatchString(strVal)
-			if match {
+			if match := compiledRE.MatchString(strVal); match {
 				if !matched {
 					matched = true
 					toBlock = append(toBlock, k)
 				}
 
-				maskedValue := compiledRE.ReplaceAllString(strVal, "****")
+				maskedValue := s.maskValue(strVal, compiledRE)
 				value.SetStr(maskedValue)
 				strVal = maskedValue
 			}
@@ -213,6 +239,28 @@ func (s *redaction) processAttrs(_ context.Context, attributes pcommon.Map) {
 	s.addMetaAttrs(toDelete, attributes, redactedKeys, redactedKeyCount)
 	s.addMetaAttrs(toBlock, attributes, maskedValues, maskedValueCount)
 	s.addMetaAttrs(ignoring, attributes, "", ignoredKeyCount)
+}
+
+//nolint:gosec
+func (s *redaction) maskValue(val string, regex *regexp.Regexp) string {
+	hashFunc := func(match string) string {
+		switch s.hashFunction {
+		case SHA1:
+			return hashString(match, sha1.New())
+		case SHA3:
+			return hashString(match, sha3.New256())
+		case MD5:
+			return hashString(match, md5.New())
+		default:
+			return "****"
+		}
+	}
+	return regex.ReplaceAllStringFunc(val, hashFunc)
+}
+
+func hashString(input string, hasher hash.Hash) string {
+	hasher.Write([]byte(input))
+	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 // addMetaAttrs adds diagnostic information about redacted or masked attribute keys
@@ -282,16 +330,16 @@ func makeIgnoreList(c *Config) map[string]string {
 	return ignoreList
 }
 
-// makeBlockRegexList precompiles all the blocked regex patterns
-func makeBlockRegexList(_ context.Context, config *Config) (map[string]*regexp.Regexp, error) {
-	blockRegexList := make(map[string]*regexp.Regexp, len(config.BlockedValues))
-	for _, pattern := range config.BlockedValues {
+// makeRegexList precompiles all the regex patterns in the defined list
+func makeRegexList(_ context.Context, valuesList []string) (map[string]*regexp.Regexp, error) {
+	regexList := make(map[string]*regexp.Regexp, len(valuesList))
+	for _, pattern := range valuesList {
 		re, err := regexp.Compile(pattern)
 		if err != nil {
 			// TODO: Placeholder for an error metric in the next PR
-			return nil, fmt.Errorf("error compiling regex in block list: %w", err)
+			return nil, fmt.Errorf("error compiling regex in list: %w", err)
 		}
-		blockRegexList[pattern] = re
+		regexList[pattern] = re
 	}
-	return blockRegexList, nil
+	return regexList, nil
 }

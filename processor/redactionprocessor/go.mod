@@ -14,6 +14,7 @@ require (
 	go.opentelemetry.io/collector/processor/processortest v0.119.0
 	go.uber.org/goleak v1.3.0
 	go.uber.org/zap v1.27.0
+	golang.org/x/crypto v0.31.0
 )
 
 require (
