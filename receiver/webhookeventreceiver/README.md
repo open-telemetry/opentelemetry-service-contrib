@@ -31,6 +31,7 @@ The following settings are optional:
 * `required_header` (optional):  
     * `key` (required if `required_header` config option is set): Represents the key portion of the required header.
     * `value` (required if `required_header` config option is set): Represents the value portion of the required header.
+* `convert_headers_to_attributes` (optional): add all request headers (excluding `required_header` if also set) log attributes
 
 Example:
 ```yaml
