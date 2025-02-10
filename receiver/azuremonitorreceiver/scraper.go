@@ -155,14 +155,13 @@ func (s *azureScraper) start(_ context.Context, _ component.Host) (err error) {
 	s.resources = map[string]map[string]*azureResource{}
 
 	// Initialize subscription ids from the config. Will be overridden if discovery is enabled anyway.
-	ids := []string{s.cfg.SubscriptionID}
-	ids = append(ids, s.cfg.SubscriptionIDs...)
-	for _, id := range ids {
-		if id != "" {
-			s.resources[id] = make(map[string]*azureResource)
-			s.subscriptions[id] = &azureSubscription{
-				SubscriptionID: id,
-			}
+	for _, id := range append(s.cfg.SubscriptionIDs, s.cfg.SubscriptionID) {
+		if id == "" {
+		    continue
+		}
+		s.resources[id] = make(map[string]*azureResource)
+		s.subscriptions[id] = &azureSubscription{
+			SubscriptionID: id,
 		}
 	}
 
