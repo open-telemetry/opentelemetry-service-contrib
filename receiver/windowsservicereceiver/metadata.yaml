@@ -36,3 +36,6 @@ metrics:
     gauge:
       value_type: int
     attributes: [windows.service.name, windows.service.startup_mode]
+
+tests:
+  config:

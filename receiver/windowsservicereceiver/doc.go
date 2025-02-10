@@ -3,5 +3,5 @@
 
 //go:generate mdatagen metadata.yaml
 
-// Package fooreceiver bars.
+// Package windowsservice receiver.
 package windowsservicereceiver // import "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsservicereceiver"

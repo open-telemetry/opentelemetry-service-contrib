@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	Type = component.MustNewType("windowsservice")
+	Type      = component.MustNewType("windowsservice")
+	ScopeName = "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsservicereceiver"
 )
 
 const (
