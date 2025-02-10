@@ -1,0 +1,26 @@
+# Sample Context
+
+The Sample Context is a Context implementation for [pdata Profiles Sample](https://github.com/open-telemetry/opentelemetry-collector/blob/main/pdata/pprofile/generated_sample.go), the collector's internal representation for OTLP profile sample data.  This Context should be used when interacted with OTLP profiles.
+
+## Paths
+In general, the Sample Context supports accessing pdata using the field names from the [profiles proto](https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/profiles/v1development/profiles.proto).  All integers are returned and set via `int64`.  All doubles are returned and set via `float64`.
+
+The following paths are supported.
+
+| path                                   | field accessed                                                                                                                                     | type                                                                    |
+|----------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| cache                                  | the value of the current transform context's temporary cache. cache can be used as a temporary placeholder for data during complex transformations | pcommon.Map                                                             |
+| cache\[""\]                            | the value of an item in cache. Supports multiple indexes to access nested fields.                                                                  | string, bool, int64, float64, pcommon.Map, pcommon.Slice, []byte or nil |
+| resource                               | resource of the sample being processed                                                                                                             | pcommon.Resource                                                        |
+| resource.attributes                    | resource attributes of the sample being processed                                                                                                  | pcommon.Map                                                             |
+| resource.attributes\[""\]              | the value of the resource attribute of the sample being processed. Supports multiple indexes to access nested fields.                              | string, bool, int64, float64, pcommon.Map, pcommon.Slice, []byte or nil |
+| instrumentation_scope                  | instrumentation scope of the sample being processed                                                                                                | pcommon.InstrumentationScope                                            |
+| instrumentation_scope.name             | name of the instrumentation scope of the sample being processed                                                                                    | string                                                                  |
+| instrumentation_scope.version          | version of the instrumentation scope of the sample being processed                                                                                 | string                                                                  |
+| instrumentation_scope.attributes       | instrumentation scope attributes of the data point being processed                                                                                 | pcommon.Map                                                             |
+| instrumentation_scope.attributes\[""\] | the value of the instrumentation scope attribute of the data point being processed. Supports multiple indexes to access nested fields.             | string, bool, int64, float64, pcommon.Map, pcommon.Slice, []byte or nil |
+| locations_length                       | the number of locations in the sample being processed                                                                                              | int32                                                                   |
+| locations_start_index                  | the start index of the locations in the sample being processed                                                                                     | int32                                                                   |
+| attribute_indices                      | the indices of the attributes in the sample being processed                                                                                        | pcommon.Int32Slice                                                      |
+| timestamps_unix_nano                   | the timestamps of the sample being processed in unix nanoseconds                                                                                   | pcommon.UInt64Slice                                                     |
+| value                                  | the values of the sample being processed                                                                                                           | pcommon.Int64Slice                                                      |
