@@ -23,7 +23,7 @@ func hasResourceOrSpanWithCondition(
 			return Sampled
 		}
 
-		if hasInstrumentationLibrarySpanWithCondition(rs.ScopeSpans(), shouldSampleSpan) {
+		if hasInstrumentationLibrarySpanWithCondition(rs.ScopeSpans(), shouldSampleSpan, false) {
 			return Sampled
 		}
 	}
@@ -42,14 +42,14 @@ func invertHasResourceOrSpanWithCondition(
 
 		resource := rs.Resource()
 		if !shouldSampleResource(resource) {
-			return InvertNotSampled
+			return NotSampled
 		}
 
-		if !invertHasInstrumentationLibrarySpanWithCondition(rs.ScopeSpans(), shouldSampleSpan) {
-			return InvertNotSampled
+		if !hasInstrumentationLibrarySpanWithCondition(rs.ScopeSpans(), shouldSampleSpan, true) {
+			return NotSampled
 		}
 	}
-	return InvertSampled
+	return Sampled
 }
 
 // hasSpanWithCondition iterates through all the instrumentation library spans until any callback returns true.
@@ -57,39 +57,24 @@ func hasSpanWithCondition(td ptrace.Traces, shouldSample func(span ptrace.Span) 
 	for i := 0; i < td.ResourceSpans().Len(); i++ {
 		rs := td.ResourceSpans().At(i)
 
-		if hasInstrumentationLibrarySpanWithCondition(rs.ScopeSpans(), shouldSample) {
+		if hasInstrumentationLibrarySpanWithCondition(rs.ScopeSpans(), shouldSample, false) {
 			return Sampled
 		}
 	}
 	return NotSampled
 }
 
-func hasInstrumentationLibrarySpanWithCondition(ilss ptrace.ScopeSpansSlice, check func(span ptrace.Span) bool) bool {
+func hasInstrumentationLibrarySpanWithCondition(ilss ptrace.ScopeSpansSlice, check func(span ptrace.Span) bool, invert bool) bool {
 	for i := 0; i < ilss.Len(); i++ {
 		ils := ilss.At(i)
 
 		for j := 0; j < ils.Spans().Len(); j++ {
 			span := ils.Spans().At(j)
 
-			if check(span) {
-				return true
+			if r := check(span); r != invert {
+				return r
 			}
 		}
 	}
-	return false
-}
-
-func invertHasInstrumentationLibrarySpanWithCondition(ilss ptrace.ScopeSpansSlice, check func(span ptrace.Span) bool) bool {
-	for i := 0; i < ilss.Len(); i++ {
-		ils := ilss.At(i)
-
-		for j := 0; j < ils.Spans().Len(); j++ {
-			span := ils.Spans().At(j)
-
-			if !check(span) {
-				return false
-			}
-		}
-	}
-	return true
+	return invert
 }
