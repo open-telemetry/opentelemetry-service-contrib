@@ -186,10 +186,11 @@ func TestAllowAllKeysMaskValues(t *testing.T) {
 func TestRedactSummaryDebug(t *testing.T) {
 	testConfig := TestConfig{
 		config: &Config{
-			AllowedKeys:        []string{"id", "group", "name", "group.id", "member (id)", "token_some", "api_key_some"},
+			AllowedKeys:        []string{"id", "group", "name", "group.id", "member (id)", "token_some", "api_key_some", "email"},
 			BlockedValues:      []string{"4[0-9]{12}(?:[0-9]{3})?"},
 			IgnoredKeys:        []string{"safe_attribute"},
 			BlockedKeyPatterns: []string{".*token.*", ".*api_key.*"},
+			AllowedValues:      []string{".+@mycompany.com"},
 			Summary:            "debug",
 		},
 		allowed: map[string]pcommon.Value{
@@ -273,7 +274,7 @@ func TestRedactSummaryDebug(t *testing.T) {
 func TestRedactSummaryDebugHashMD5(t *testing.T) {
 	testConfig := TestConfig{
 		config: &Config{
-			AllowedKeys:        []string{"id", "group", "name", "group.id", "member (id)", "token_some", "api_key_some"},
+			AllowedKeys:        []string{"id", "group", "name", "group.id", "member (id)", "token_some", "api_key_some", "email"},
 			BlockedValues:      []string{"4[0-9]{12}(?:[0-9]{3})?"},
 			HashFunction:       MD5,
 			IgnoredKeys:        []string{"safe_attribute"},
@@ -363,9 +364,10 @@ func TestRedactSummaryDebugHashMD5(t *testing.T) {
 func TestRedactSummaryInfo(t *testing.T) {
 	testConfig := TestConfig{
 		config: &Config{
-			AllowedKeys:   []string{"id", "name", "group"},
+			AllowedKeys:   []string{"id", "name", "group", "email"},
 			BlockedValues: []string{"4[0-9]{12}(?:[0-9]{3})?"},
 			IgnoredKeys:   []string{"safe_attribute"},
+			AllowedValues: []string{".+@mycompany.com"},
 			Summary:       "info",
 		},
 		allowed: map[string]pcommon.Value{
@@ -379,6 +381,9 @@ func TestRedactSummaryInfo(t *testing.T) {
 		},
 		redacted: map[string]pcommon.Value{
 			"credit_card": pcommon.NewValueStr("4111111111111111"),
+		},
+		allowedValues: map[string]pcommon.Value{
+			"email": pcommon.NewValueStr("user@mycompany.com"),
 		},
 	}
 
