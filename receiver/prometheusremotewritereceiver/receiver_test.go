@@ -219,28 +219,37 @@ func TestTranslateV2(t *testing.T) {
 			request: writeV2RequestFixture,
 			expectedMetrics: func() pmetric.Metrics {
 				expected := pmetric.NewMetrics()
-				rm1 := expected.ResourceMetrics().AppendEmpty()
-				rmAttributes1 := rm1.Resource().Attributes()
-				rmAttributes1.PutStr("service.namespace", "service-x")
-				rmAttributes1.PutStr("service.name", "test")
-				rmAttributes1.PutStr("service.instance.id", "107cn001")
-				sm1 := rm1.ScopeMetrics().AppendEmpty()
-				sm1Attributes := sm1.Metrics().AppendEmpty().SetEmptyGauge().DataPoints().AppendEmpty().Attributes()
-				sm1Attributes.PutStr("d", "e")
-				sm1Attributes.PutStr("foo", "bar")
-				// Since we don't check "scope_name" and "scope_version", we end up with duplicated scope metrics for repeated series.
-				// TODO: Properly handle scope metrics.
-				sm2Attributes := sm1.Metrics().AppendEmpty().SetEmptyGauge().DataPoints().AppendEmpty().Attributes()
-				sm2Attributes.PutStr("d", "e")
-				sm2Attributes.PutStr("foo", "bar")
 
+				// Resource 1: for job "service-x/test" → namespace "service-x", name "test", instance "107cn001"
+				rm1 := expected.ResourceMetrics().AppendEmpty()
+				rm1.Resource().Attributes().PutStr("service.namespace", "service-x")
+				rm1.Resource().Attributes().PutStr("service.name", "test")
+				rm1.Resource().Attributes().PutStr("service.instance.id", "107cn001")
+				sm1 := rm1.ScopeMetrics().AppendEmpty()
+				sm1.Scope().SetName(buildName)
+				sm1.Scope().SetVersion(buildVersion)
+				// Timeseries 1 gauge metric.
+				m1 := sm1.Metrics().AppendEmpty().SetEmptyGauge()
+				dp1 := m1.DataPoints().AppendEmpty()
+				dp1.Attributes().PutStr("d", "e")
+				dp1.Attributes().PutStr("foo", "bar")
+				// Timeseries 2 gauge metric.
+				m2 := sm1.Metrics().AppendEmpty().SetEmptyGauge()
+				dp2 := m2.DataPoints().AppendEmpty()
+				dp2.Attributes().PutStr("d", "e")
+				dp2.Attributes().PutStr("foo", "bar")
+
+				// Resource 2: for job "foo" with instance "bar"
 				rm2 := expected.ResourceMetrics().AppendEmpty()
-				rmAttributes2 := rm2.Resource().Attributes()
-				rmAttributes2.PutStr("service.name", "foo")
-				rmAttributes2.PutStr("service.instance.id", "bar")
-				mAttributes2 := rm2.ScopeMetrics().AppendEmpty().Metrics().AppendEmpty().SetEmptyGauge().DataPoints().AppendEmpty().Attributes()
-				mAttributes2.PutStr("d", "e")
-				mAttributes2.PutStr("foo", "bar")
+				rm2.Resource().Attributes().PutStr("service.name", "foo")
+				rm2.Resource().Attributes().PutStr("service.instance.id", "bar")
+				sm2 := rm2.ScopeMetrics().AppendEmpty()
+				sm2.Scope().SetName(buildName)
+				sm2.Scope().SetVersion(buildVersion)
+				m3 := sm2.Metrics().AppendEmpty().SetEmptyGauge()
+				dp3 := m3.DataPoints().AppendEmpty()
+				dp3.Attributes().PutStr("d", "e")
+				dp3.Attributes().PutStr("foo", "bar")
 
 				return expected
 			}(),
