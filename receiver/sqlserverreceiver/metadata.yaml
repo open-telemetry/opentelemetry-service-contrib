@@ -255,6 +255,139 @@ metrics:
       input_type: string
     attributes: [database.status]
     extended_documentation: This metric is only available when the receiver is configured to directly connect to SQL Server.
+  sqlserver.active.temp.tables:
+    enabled: false
+    description: The number of active temporary tables.
+    unit: “{temp_tables}”
+    gauge:
+      value_type: int
+    attributes: []
+  sqlserver.backup_or_restore:
+    enabled: false
+    description: The number of backups/restores per second.
+    unit: “{backups_or_restores}/s”
+    gauge:
+      value_type: int
+    attributes: []
+  sqlserver.replica_sent:
+    enabled: false
+    description: Bytes sent per second to a replica.
+    unit: “{bytes}/s”
+    gauge:
+      value_type: double
+    attributes: []
+  sqlserver.replica_received:
+    enabled: false
+    description: Bytes received per second from a replica.
+    unit: “{bytes}/s”
+    gauge:
+      value_type: double
+    attributes: []
+  sqlserver.execution_errors:
+    enabled: false
+    description: Number of execution errors.
+    unit: “{errors}”
+    gauge:
+      value_type: int
+    attributes: []
+  sqlserver.free_list_stalls:
+    enabled: false
+    description: Number of free list stalls per second.
+    unit: “{stalls}/s”
+    gauge:
+      value_type: int
+    attributes: []
+  sqlserver.free_space_tempdb:
+    enabled: false
+    description: Total free space in temporary DB.
+    unit: “KB”
+    gauge:
+      value_type: int
+    attributes: []
+  sqlserver.full_scans:
+    enabled: false
+    description: Total full scans per second.
+    unit: "{scans}/s"
+    gauge:
+      value_type: int
+    attributes: []
+  sqlserver.index_searches:
+    enabled: false
+    description: Total number of index searches.
+    unit: “{index_searches}/s”
+    gauge:
+      value_type: double
+    attributes: []
+  sqlserver.lock_timeouts:
+    enabled: false
+    description: Total number of lock timeouts per second.
+    unit: “{lock_timeouts}/s”
+    gauge:
+      value_type: double
+    attributes: []
+  sqlserver.logins:
+    enabled: false
+    description: Total number of logins per second.
+    unit: “{logins}/s”
+    gauge:
+      value_type: double
+    attributes: []
+  sqlserver.logouts:
+    enabled: false
+    description: Total number of logouts per second.
+    unit: “{logouts}/s”
+    gauge:
+      value_type: double
+    attributes: []
+  sqlserver.deadlocks:
+    enabled: false
+    description: Total number of deadlocks per second.
+    unit: “{deadlocks}/s”
+    gauge:
+      value_type: double
+    attributes: []
+  sqlserver.mirror_write_transaction:
+    enabled: false
+    description: Total number of mirror write transactions per second.
+    unit: “{mirror_write_transactions}/s”
+    gauge:
+      value_type: double
+    attributes: []
+  sqlserver.memory_grants_pending:
+    enabled: false
+    description: Total number of memory grants pending.
+    unit: “{memory_grants_pending}”
+    gauge:
+      value_type: int
+    attributes: []
+  sqlserver.page_lookups:
+    enabled: false
+    description: Total number of page lookups.
+    unit: “{page_lookups}/s”
+    gauge:
+      value_type: double
+    attributes: []
+  sqlserver.transaction_delays:
+    enabled: false
+    description: Time consumed in transaction delays.
+    unit: ms
+    gauge:
+      value_type: double
+    attributes: []
+  sqlserver.used_memory:
+    enabled: false
+    description: Total used memory.
+    unit: “KB”
+    gauge:
+      value_type: double
+    attributes: []
+  sqlserver.version_store_size:
+    enabled: false
+    description: Version store size.
+    unit: “KB”
+    gauge:
+      value_type: double
+    attributes: []  
 
 tests:
   config:

@@ -1,6 +1,10 @@
 default:
 all_set:
   metrics:
+    sqlserver.active.temp.tables:
+      enabled: true
+    sqlserver.backup_or_restore:
+      enabled: true
     sqlserver.batch.request.rate:
       enabled: true
     sqlserver.batch.sql_compilation.rate:
@@ -15,9 +19,31 @@ all_set:
       enabled: true
     sqlserver.database.operations:
       enabled: true
+    sqlserver.deadlocks:
+      enabled: true
+    sqlserver.execution_errors:
+      enabled: true
+    sqlserver.free_list_stalls:
+      enabled: true
+    sqlserver.free_space_tempdb:
+      enabled: true
+    sqlserver.full_scans:
+      enabled: true
+    sqlserver.index_searches:
+      enabled: true
     sqlserver.lock.wait.rate:
       enabled: true
     sqlserver.lock.wait_time.avg:
+      enabled: true
+    sqlserver.lock_timeouts:
+      enabled: true
+    sqlserver.logins:
+      enabled: true
+    sqlserver.logouts:
+      enabled: true
+    sqlserver.memory_grants_pending:
+      enabled: true
+    sqlserver.mirror_write_transaction:
       enabled: true
     sqlserver.page.buffer_cache.hit_ratio:
       enabled: true
@@ -31,7 +57,13 @@ all_set:
       enabled: true
     sqlserver.page.split.rate:
       enabled: true
+    sqlserver.page_lookups:
+      enabled: true
     sqlserver.processes.blocked:
+      enabled: true
+    sqlserver.replica_received:
+      enabled: true
+    sqlserver.replica_sent:
       enabled: true
     sqlserver.resource_pool.disk.throttled.read.rate:
       enabled: true
@@ -40,6 +72,8 @@ all_set:
     sqlserver.transaction.rate:
       enabled: true
     sqlserver.transaction.write.rate:
+      enabled: true
+    sqlserver.transaction_delays:
       enabled: true
     sqlserver.transaction_log.flush.data.rate:
       enabled: true
@@ -53,7 +87,11 @@ all_set:
       enabled: true
     sqlserver.transaction_log.usage:
       enabled: true
+    sqlserver.used_memory:
+      enabled: true
     sqlserver.user.connection.count:
+      enabled: true
+    sqlserver.version_store_size:
       enabled: true
   resource_attributes:
     sqlserver.computer.name:
@@ -64,6 +102,10 @@ all_set:
       enabled: true
 none_set:
   metrics:
+    sqlserver.active.temp.tables:
+      enabled: false
+    sqlserver.backup_or_restore:
+      enabled: false
     sqlserver.batch.request.rate:
       enabled: false
     sqlserver.batch.sql_compilation.rate:
@@ -78,9 +120,31 @@ none_set:
       enabled: false
     sqlserver.database.operations:
       enabled: false
+    sqlserver.deadlocks:
+      enabled: false
+    sqlserver.execution_errors:
+      enabled: false
+    sqlserver.free_list_stalls:
+      enabled: false
+    sqlserver.free_space_tempdb:
+      enabled: false
+    sqlserver.full_scans:
+      enabled: false
+    sqlserver.index_searches:
+      enabled: false
     sqlserver.lock.wait.rate:
       enabled: false
     sqlserver.lock.wait_time.avg:
+      enabled: false
+    sqlserver.lock_timeouts:
+      enabled: false
+    sqlserver.logins:
+      enabled: false
+    sqlserver.logouts:
+      enabled: false
+    sqlserver.memory_grants_pending:
+      enabled: false
+    sqlserver.mirror_write_transaction:
       enabled: false
     sqlserver.page.buffer_cache.hit_ratio:
       enabled: false
@@ -94,7 +158,13 @@ none_set:
       enabled: false
     sqlserver.page.split.rate:
       enabled: false
+    sqlserver.page_lookups:
+      enabled: false
     sqlserver.processes.blocked:
+      enabled: false
+    sqlserver.replica_received:
+      enabled: false
+    sqlserver.replica_sent:
       enabled: false
     sqlserver.resource_pool.disk.throttled.read.rate:
       enabled: false
@@ -103,6 +173,8 @@ none_set:
     sqlserver.transaction.rate:
       enabled: false
     sqlserver.transaction.write.rate:
+      enabled: false
+    sqlserver.transaction_delays:
       enabled: false
     sqlserver.transaction_log.flush.data.rate:
       enabled: false
@@ -116,7 +188,11 @@ none_set:
       enabled: false
     sqlserver.transaction_log.usage:
       enabled: false
+    sqlserver.used_memory:
+      enabled: false
     sqlserver.user.connection.count:
+      enabled: false
+    sqlserver.version_store_size:
       enabled: false
   resource_attributes:
     sqlserver.computer.name:
