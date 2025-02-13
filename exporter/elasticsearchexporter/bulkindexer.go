@@ -70,10 +70,19 @@ func bulkIndexerConfig(client esapi.Transport, config *Config, requireDataStream
 			maxDocRetries = config.Retry.MaxRetries
 		}
 	}
+
 	var compressionLevel int
 	if config.Compression == configcompression.TypeGzip {
 		compressionLevel = gzip.BestSpeed
 	}
+
+	var requireDataStream bool
+	if config.RequireDataStream != nil {
+		requireDataStream = *config.RequireDataStream
+	} else if config.MappingMode() == MappingOTel {
+		requireDataStream = true
+	}
+
 	return docappender.BulkIndexerConfig{
 		Client:                client,
 		MaxDocumentRetries:    maxDocRetries,
