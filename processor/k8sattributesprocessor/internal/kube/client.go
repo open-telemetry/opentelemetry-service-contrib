@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -948,8 +949,21 @@ func (c *WatchClient) shouldIgnorePod(pod *api_v1.Pod) bool {
 
 func selectorsFromFilters(filters Filters) (labels.Selector, fields.Selector, error) {
 	labelSelector := labels.Everything()
+	singleValueSelections := []selection.Operator{
+		selection.Equals, selection.DoubleEquals, selection.NotEquals,
+		selection.GreaterThan, selection.LessThan,
+	}
 	for _, f := range filters.Labels {
-		r, err := labels.NewRequirement(f.Key, f.Op, []string{f.Value})
+		if f.Op == selection.In || f.Op == selection.NotIn {
+			return nil, nil, fmt.Errorf("field filters don't support operator: '%s'", f.Op)
+		}
+		
+		var vals []string
+		if slices.Contains(singleValueSelections, f.Op) {
+			vals = []string{f.Value}
+		}
+
+		r, err := labels.NewRequirement(f.Key, f.Op, vals)
 		if err != nil {
 			return nil, nil, err
 		}
