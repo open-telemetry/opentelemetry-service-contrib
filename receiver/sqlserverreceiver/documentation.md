@@ -216,6 +216,22 @@ metrics:
     enabled: true
 ```
 
+### sqlserver.active.temp.tables
+
+The number of active temporary tables.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{temp_tables}” | Gauge | Int |
+
+### sqlserver.backup_or_restore
+
+The number of backups/restores per second.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{backups_or_restores}/s” | Gauge | Int |
+
 ### sqlserver.database.count
 
 The number of databases
@@ -289,6 +305,102 @@ This metric is only available when the receiver is configured to directly connec
 | file_type | The type of file being monitored. | Any Str |
 | direction | The direction of flow of bytes or operations. | Str: ``read``, ``write`` |
 
+### sqlserver.deadlocks
+
+Total number of deadlocks per second.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{deadlocks}/s” | Gauge | Double |
+
+### sqlserver.execution_errors
+
+Number of execution errors.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{errors}” | Gauge | Int |
+
+### sqlserver.free_list_stalls
+
+Number of free list stalls per second.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{stalls}/s” | Gauge | Int |
+
+### sqlserver.free_space_tempdb
+
+Total free space in temporary DB.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “KB” | Gauge | Int |
+
+### sqlserver.full_scans
+
+Total full scans per second.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| {scans}/s | Gauge | Int |
+
+### sqlserver.index_searches
+
+Total number of index searches.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{index_searches}/s” | Gauge | Double |
+
+### sqlserver.lock_timeouts
+
+Total number of lock timeouts per second.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{lock_timeouts}/s” | Gauge | Double |
+
+### sqlserver.logins
+
+Total number of logins per second.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{logins}/s” | Gauge | Double |
+
+### sqlserver.logouts
+
+Total number of logouts per second.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{logouts}/s” | Gauge | Double |
+
+### sqlserver.memory_grants_pending
+
+Total number of memory grants pending.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{memory_grants_pending}” | Gauge | Int |
+
+### sqlserver.mirror_write_transaction
+
+Total number of mirror write transactions per second.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{mirror_write_transactions}/s” | Gauge | Double |
+
+### sqlserver.page_lookups
+
+Total number of page lookups.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{page_lookups}/s” | Gauge | Double |
+
 ### sqlserver.processes.blocked
 
 The number of processes that are currently blocked
@@ -298,6 +410,22 @@ This metric is only available when the receiver is configured to directly connec
 | Unit | Metric Type | Value Type |
 | ---- | ----------- | ---------- |
 | {processes} | Gauge | Int |
+
+### sqlserver.replica_received
+
+Bytes received per second from a replica.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{bytes}/s” | Gauge | Double |
+
+### sqlserver.replica_sent
+
+Bytes sent per second to a replica.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “{bytes}/s” | Gauge | Double |
 
 ### sqlserver.resource_pool.disk.throttled.read.rate
 
@@ -318,6 +446,30 @@ This metric is only available when the receiver is configured to directly connec
 | Unit | Metric Type | Value Type |
 | ---- | ----------- | ---------- |
 | {writes}/s | Gauge | Double |
+
+### sqlserver.transaction_delays
+
+Time consumed in transaction delays.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| ms | Gauge | Double |
+
+### sqlserver.used_memory
+
+Total used memory.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “KB” | Gauge | Double |
+
+### sqlserver.version_store_size
+
+Version store size.
+
+| Unit | Metric Type | Value Type |
+| ---- | ----------- | ---------- |
+| “KB” | Gauge | Double |
 
 ## Resource Attributes
 

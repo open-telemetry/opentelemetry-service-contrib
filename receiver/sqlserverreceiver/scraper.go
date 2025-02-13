@@ -174,15 +174,34 @@ func (s *sqlServerScraperHelper) recordDatabasePerfCounterMetrics(ctx context.Co
 	const counterKey = "counter"
 	const valueKey = "value"
 	// Constants are the columns for metrics from query
+	const activeTempTables = "Active Temp Tables"
+	const backupRestoreThroughputPerSec = "Backup/Restore Throughput/sec"
 	const batchRequestRate = "Batch Requests/sec"
 	const bufferCacheHitRatio = "Buffer cache hit ratio"
+	const bytesReceivedFromReplicaPerSec = "Bytes Received from Replica/sec"
+	const bytesSentForReplicaPerSec = "Bytes Sent to Replica/sec"
 	const diskReadIOThrottled = "Disk Read IO Throttled/sec"
 	const diskWriteIOThrottled = "Disk Write IO Throttled/sec"
+	const executionErrors = "Execution Errors"
+	const freeListStalls = "Free list stalls/sec"
+	const freeSpaceInTempdb = "Free Space in tempdb (KB)"
+	const fullScansPerSec = "Full Scans/sec"
+	const indexSearchesPerSec = "Index Searches/sec"
+	const lockTimeoutsPerSec = "Lock Timeouts/sec"
 	const lockWaits = "Lock Waits/sec"
+	const loginsPerSec = "Logins/sec"
+	const logoutPerSec = "Logouts/sec"
+	const numberOfDeadlocksPerSec = "Number of Deadlocks/sec"
+	const mirrorWritesTransactionPerSec = "Mirrored Write Transactions/sec"
+	const memoryGrantsPending = "Memory Grants Pending"
+	const pageLookupsPerSec = "Page lookups/sec"
 	const processesBlocked = "Processes blocked"
 	const sqlCompilationRate = "SQL Compilations/sec"
 	const sqlReCompilationsRate = "SQL Re-Compilations/sec"
+	const transactionDelay = "Transaction Delay"
 	const userConnCount = "User Connections"
+	const usedMemory = "Used memory (KB)"
+	const versionStoreSize = "Version Store Size (KB)"
 
 	rows, err := s.client.QueryRows(ctx)
 	if err != nil {
@@ -201,6 +220,22 @@ func (s *sqlServerScraperHelper) recordDatabasePerfCounterMetrics(ctx context.Co
 		rb.SetSqlserverInstanceName(row[instanceNameKey])
 
 		switch row[counterKey] {
+		case activeTempTables:
+			val, err := strconv.ParseInt(row[valueKey], 10, 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverActiveTempTablesDataPoint(now, val)
+			}
+		case backupRestoreThroughputPerSec:
+			val, err := strconv.ParseInt(row[valueKey], 10, 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverBackupOrRestoreDataPoint(now, val)
+			}
 		case batchRequestRate:
 			val, err := strconv.ParseFloat(row[valueKey], 64)
 			if err != nil {
@@ -217,10 +252,74 @@ func (s *sqlServerScraperHelper) recordDatabasePerfCounterMetrics(ctx context.Co
 			} else {
 				s.mb.RecordSqlserverPageBufferCacheHitRatioDataPoint(now, val)
 			}
+		case bytesReceivedFromReplicaPerSec:
+			val, err := strconv.ParseFloat(row[valueKey], 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverReplicaReceivedDataPoint(now, val)
+			}
+		case bytesSentForReplicaPerSec:
+			val, err := strconv.ParseFloat(row[valueKey], 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverReplicaSentDataPoint(now, val)
+			}
 		case diskReadIOThrottled:
 			errs = append(errs, s.mb.RecordSqlserverResourcePoolDiskThrottledReadRateDataPoint(now, row[valueKey]))
 		case diskWriteIOThrottled:
 			errs = append(errs, s.mb.RecordSqlserverResourcePoolDiskThrottledWriteRateDataPoint(now, row[valueKey]))
+		case executionErrors:
+			val, err := strconv.ParseInt(row[valueKey], 10, 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverExecutionErrorsDataPoint(now, val)
+			}
+		case freeListStalls:
+			val, err := strconv.ParseInt(row[valueKey], 10, 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverFreeListStallsDataPoint(now, val)
+			}
+		case fullScansPerSec:
+			val, err := strconv.ParseInt(row[valueKey], 10, 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverFullScansDataPoint(now, val)
+			}
+		case freeSpaceInTempdb:
+			val, err := strconv.ParseInt(row[valueKey], 10, 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverFreeSpaceTempdbDataPoint(now, val)
+			}
+		case indexSearchesPerSec:
+			val, err := strconv.ParseFloat(row[valueKey], 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverIndexSearchesDataPoint(now, val)
+			}
+		case lockTimeoutsPerSec:
+			val, err := strconv.ParseFloat(row[valueKey], 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverLockTimeoutsDataPoint(now, val)
+			}
 		case lockWaits:
 			val, err := strconv.ParseFloat(row[valueKey], 64)
 			if err != nil {
@@ -228,6 +327,54 @@ func (s *sqlServerScraperHelper) recordDatabasePerfCounterMetrics(ctx context.Co
 				errs = append(errs, err)
 			} else {
 				s.mb.RecordSqlserverLockWaitRateDataPoint(now, val)
+			}
+		case loginsPerSec:
+			val, err := strconv.ParseFloat(row[valueKey], 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverLoginsDataPoint(now, val)
+			}
+		case logoutPerSec:
+			val, err := strconv.ParseFloat(row[valueKey], 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverLogoutsDataPoint(now, val)
+			}
+		case memoryGrantsPending:
+			val, err := strconv.ParseInt(row[valueKey], 10, 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverMemoryGrantsPendingDataPoint(now, val)
+			}
+		case mirrorWritesTransactionPerSec:
+			val, err := strconv.ParseFloat(row[valueKey], 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverMirrorWriteTransactionDataPoint(now, val)
+			}
+		case numberOfDeadlocksPerSec:
+			val, err := strconv.ParseFloat(row[valueKey], 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverDeadlocksDataPoint(now, val)
+			}
+		case pageLookupsPerSec:
+			val, err := strconv.ParseFloat(row[valueKey], 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverPageLookupsDataPoint(now, val)
 			}
 		case processesBlocked:
 			errs = append(errs, s.mb.RecordSqlserverProcessesBlockedDataPoint(now, row[valueKey]))
@@ -247,6 +394,14 @@ func (s *sqlServerScraperHelper) recordDatabasePerfCounterMetrics(ctx context.Co
 			} else {
 				s.mb.RecordSqlserverBatchSQLRecompilationRateDataPoint(now, val)
 			}
+		case transactionDelay:
+			val, err := strconv.ParseFloat(row[valueKey], 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverTransactionDelaysDataPoint(now, val)
+			}
 		case userConnCount:
 			val, err := strconv.ParseInt(row[valueKey], 10, 64)
 			if err != nil {
@@ -254,6 +409,22 @@ func (s *sqlServerScraperHelper) recordDatabasePerfCounterMetrics(ctx context.Co
 				errs = append(errs, err)
 			} else {
 				s.mb.RecordSqlserverUserConnectionCountDataPoint(now, val)
+			}
+		case usedMemory:
+			val, err := strconv.ParseFloat(row[valueKey], 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverUsedMemoryDataPoint(now, val)
+			}
+		case versionStoreSize:
+			val, err := strconv.ParseFloat(row[valueKey], 64)
+			if err != nil {
+				err = fmt.Errorf("row %d: %w", i, err)
+				errs = append(errs, err)
+			} else {
+				s.mb.RecordSqlserverVersionStoreSizeDataPoint(now, val)
 			}
 		}
 
