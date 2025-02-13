@@ -18,13 +18,37 @@ func TestSetupTelemetry(t *testing.T) {
 	tb, err := metadata.NewTelemetryBuilder(testTel.NewTelemetrySettings())
 	require.NoError(t, err)
 	defer tb.Shutdown()
+	tb.ExporterPrometheusremotewriteConsumers.Record(context.Background(), 1)
 	tb.ExporterPrometheusremotewriteFailedTranslations.Add(context.Background(), 1)
+	tb.ExporterPrometheusremotewriteSentBatchCount.Add(context.Background(), 1)
 	tb.ExporterPrometheusremotewriteTranslatedTimeSeries.Add(context.Background(), 1)
 
 	testTel.AssertMetrics(t, []metricdata.Metrics{
 		{
+			Name:        "otelcol_exporter_prometheusremotewrite_consumers",
+			Description: "Number of configured workers to use to fan out the outgoing requests",
+			Unit:        "1",
+			Data: metricdata.Gauge[int64]{
+				DataPoints: []metricdata.DataPoint[int64]{
+					{},
+				},
+			},
+		},
+		{
 			Name:        "otelcol_exporter_prometheusremotewrite_failed_translations",
 			Description: "Number of translation operations that failed to translate metrics from Otel to Prometheus",
+			Unit:        "1",
+			Data: metricdata.Sum[int64]{
+				Temporality: metricdata.CumulativeTemporality,
+				IsMonotonic: true,
+				DataPoints: []metricdata.DataPoint[int64]{
+					{},
+				},
+			},
+		},
+		{
+			Name:        "otelcol_exporter_prometheusremotewrite_sent_batch_count",
+			Description: "Number of remote write request batches sent to the remote write endpoint",
 			Unit:        "1",
 			Data: metricdata.Sum[int64]{
 				Temporality: metricdata.CumulativeTemporality,
@@ -47,7 +71,13 @@ func TestSetupTelemetry(t *testing.T) {
 			},
 		},
 	}, metricdatatest.IgnoreTimestamp(), metricdatatest.IgnoreValue())
+	AssertEqualExporterPrometheusremotewriteConsumers(t, testTel.Telemetry,
+		[]metricdata.DataPoint[int64]{{Value: 1}},
+		metricdatatest.IgnoreTimestamp())
 	AssertEqualExporterPrometheusremotewriteFailedTranslations(t, testTel.Telemetry,
+		[]metricdata.DataPoint[int64]{{Value: 1}},
+		metricdatatest.IgnoreTimestamp())
+	AssertEqualExporterPrometheusremotewriteSentBatchCount(t, testTel.Telemetry,
 		[]metricdata.DataPoint[int64]{{Value: 1}},
 		metricdatatest.IgnoreTimestamp())
 	AssertEqualExporterPrometheusremotewriteTranslatedTimeSeries(t, testTel.Telemetry,

@@ -51,6 +51,20 @@ func (tt *Telemetry) AssertMetrics(t *testing.T, expected []metricdata.Metrics, 
 	require.Equal(t, len(expected), lenMetrics(md))
 }
 
+func AssertEqualExporterPrometheusremotewriteConsumers(t *testing.T, tt *componenttest.Telemetry, dps []metricdata.DataPoint[int64], opts ...metricdatatest.Option) {
+	want := metricdata.Metrics{
+		Name:        "otelcol_exporter_prometheusremotewrite_consumers",
+		Description: "Number of configured workers to use to fan out the outgoing requests",
+		Unit:        "1",
+		Data: metricdata.Gauge[int64]{
+			DataPoints: dps,
+		},
+	}
+	got, err := tt.GetMetric("otelcol_exporter_prometheusremotewrite_consumers")
+	require.NoError(t, err)
+	metricdatatest.AssertEqual(t, want, got, opts...)
+}
+
 func AssertEqualExporterPrometheusremotewriteFailedTranslations(t *testing.T, tt *componenttest.Telemetry, dps []metricdata.DataPoint[int64], opts ...metricdatatest.Option) {
 	want := metricdata.Metrics{
 		Name:        "otelcol_exporter_prometheusremotewrite_failed_translations",
@@ -63,6 +77,22 @@ func AssertEqualExporterPrometheusremotewriteFailedTranslations(t *testing.T, tt
 		},
 	}
 	got, err := tt.GetMetric("otelcol_exporter_prometheusremotewrite_failed_translations")
+	require.NoError(t, err)
+	metricdatatest.AssertEqual(t, want, got, opts...)
+}
+
+func AssertEqualExporterPrometheusremotewriteSentBatchCount(t *testing.T, tt *componenttest.Telemetry, dps []metricdata.DataPoint[int64], opts ...metricdatatest.Option) {
+	want := metricdata.Metrics{
+		Name:        "otelcol_exporter_prometheusremotewrite_sent_batch_count",
+		Description: "Number of remote write request batches sent to the remote write endpoint",
+		Unit:        "1",
+		Data: metricdata.Sum[int64]{
+			Temporality: metricdata.CumulativeTemporality,
+			IsMonotonic: true,
+			DataPoints:  dps,
+		},
+	}
+	got, err := tt.GetMetric("otelcol_exporter_prometheusremotewrite_sent_batch_count")
 	require.NoError(t, err)
 	metricdatatest.AssertEqual(t, want, got, opts...)
 }
