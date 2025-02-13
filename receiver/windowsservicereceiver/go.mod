@@ -1,6 +1,6 @@
-module github.com/open-telemetry/opentelemetry-collector-contrib/receiver/windowsservicereceiver
+module github.com/open-telemetry-collector-contrib/receiver/windowsservicereceiver
 
-go 1.22.0
+go 1.24.0
 
 require (
 	github.com/google/go-cmp v0.6.0
