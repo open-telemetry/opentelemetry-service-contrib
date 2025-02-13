@@ -5,7 +5,10 @@ package webhookeventreceiver // import "github.com/open-telemetry/opentelemetry-
 
 import (
 	"bufio"
+	"net/http"
+	"net/textproto"
 	"net/url"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -16,8 +19,9 @@ import (
 )
 
 func reqToLog(sc *bufio.Scanner,
+	headers http.Header,
 	query url.Values,
-	_ *Config,
+	config *Config,
 	settings receiver.Settings,
 ) (plog.Logs, int) {
 	// we simply dont split the data passed into scan (i.e. scan the whole thing)
@@ -41,6 +45,9 @@ func reqToLog(sc *bufio.Scanner,
 	scopeLog.Scope().SetVersion(settings.BuildInfo.Version)
 	scopeLog.Scope().Attributes().PutStr("source", settings.ID.String())
 	scopeLog.Scope().Attributes().PutStr("receiver", metadata.Type.String())
+	if config.ConvertHeadersToAttributes {
+		appendHeaders(config, scopeLog, headers)
+	}
 
 	for sc.Scan() {
 		logRecord := scopeLog.LogRecords().AppendEmpty()
@@ -59,4 +66,22 @@ func appendMetadata(resourceLog plog.ResourceLogs, query url.Values) {
 			resourceLog.Resource().Attributes().PutStr(k, query.Get(k))
 		}
 	}
+}
+
+// append headers as attributes
+func appendHeaders(config *Config, scopeLog plog.ScopeLogs, headers http.Header) {
+	for k := range headers {
+		// Skip the required header used for authentication
+		if k == textproto.CanonicalMIMEHeaderKey(config.RequiredHeader.Key) {
+			continue
+		}
+		scopeLog.Scope().Attributes().PutStr(headerAttributeKey(k), strings.Join(headers.Values(k), ";"))
+	}
+}
+
+// convert given header to snake_case and add "header" as a namespace prefix
+func headerAttributeKey(header string) string {
+	snakeCaseHeader := strings.ReplaceAll(header, "-", "_")
+	snakeCaseHeader = strings.ToLower(snakeCaseHeader)
+	return "header." + snakeCaseHeader
 }
