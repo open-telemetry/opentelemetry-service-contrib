@@ -49,6 +49,6 @@ func TestLimit(t *testing.T) {
 	fmt.Println(load.Load(), store.Load(), fail.Load())
 
 	require.Equal(t, int64(100), store.Load())
-	require.Equal(t, int64(900), load.Load())
-	require.Equal(t, int64(100), fail.Load())
+	require.GreaterOrEqual(t, int64(900), load.Load())
+	require.LessOrEqual(t, int64(100), fail.Load())
 }

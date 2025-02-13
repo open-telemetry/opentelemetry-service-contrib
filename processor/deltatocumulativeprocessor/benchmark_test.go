@@ -164,18 +164,18 @@ func BenchmarkProcessor(gb *testing.B) {
 }
 
 func Benchmark(b *testing.B) {
-	const K = 64               // number of metrics
-	const S = 3                // number of streams
-	P := runtime.GOMAXPROCS(0) // number of routines
-	if P > K {
+	const numMetrics = 64
+	const numStreams = 3
+	numRoutines := runtime.GOMAXPROCS(0)
+	if numRoutines > numMetrics {
 		b.Fatal("increase K")
 	}
 
-	var id atomic.Int64
-	id.Store(-1)
+	var metricID atomic.Int64
+	metricID.Store(-1)
 
 	var init sync.WaitGroup
-	init.Add(P)
+	init.Add(numRoutines)
 	wait := make(chan struct{})
 
 	start := time.Now()
@@ -190,16 +190,16 @@ func Benchmark(b *testing.B) {
 		close(wait)
 	}()
 
-	k := K / P
+	batchSize := numMetrics / numRoutines
 	b.RunParallel(func(pb *testing.PB) {
 		md := pmetric.NewMetrics()
-		ms := make([]pmetric.Metric, k)
+		ms := make([]pmetric.Metric, batchSize)
 		for i := range ms {
 			m := md.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty().Metrics().AppendEmpty()
-			mid := id.Add(1)
+			mid := metricID.Add(1)
 			m.SetName(fmt.Sprintf("metric-%d", mid))
 			sum := m.SetEmptySum()
-			for s := range S {
+			for s := range numStreams {
 				dp := sum.DataPoints().AppendEmpty()
 				dp.Attributes().PutInt("s", int64(s))
 				dp.SetIntValue(rand.Int64N(100))
@@ -227,7 +227,7 @@ func Benchmark(b *testing.B) {
 	})
 	b.StopTimer()
 
-	dps := K / P * S * b.N
+	dps := batchSize * numStreams * b.N
 	require.Equal(b, int64(dps), sink.Load())
 }
 
