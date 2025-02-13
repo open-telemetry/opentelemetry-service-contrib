@@ -304,5 +304,6 @@ receiver/wavefrontreceiver
 receiver/webhookeventreceiver
 receiver/windowseventlogreceiver
 receiver/windowsperfcountersreceiver
+receiver/windowsservicereceiver
 scraper/zookeeperscraper
 receiver/zookeeperreceiver
