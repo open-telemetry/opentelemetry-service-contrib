@@ -24,6 +24,11 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest/pmetrictest"
 )
 
+const (
+	defaultBuildName    = "defaultBuildName"
+	defaultBuildVersion = "defaultBuildVersion"
+)
+
 var writeV2RequestFixture = &writev2.Request{
 	Symbols: []string{"", "__name__", "test_metric1", "job", "service-x/test", "instance", "107cn001", "d", "e", "foo", "bar", "f", "g", "h", "i", "Test gauge for test purposes", "Maybe op/sec who knows (:", "Test counter for test purposes"},
 	Timeseries: []writev2.TimeSeries{
@@ -121,15 +126,21 @@ func TestHandlePRWContentTypeNegotiation(t *testing.T) {
 
 func TestTranslateV2(t *testing.T) {
 	prwReceiver := setupMetricsReceiver(t)
+	// Save the default BuildInfo values.
+	defaultBuildName := prwReceiver.settings.BuildInfo.Description
+	defaultBuildVersion := prwReceiver.settings.BuildInfo.Version
+
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
 	for _, tc := range []struct {
-		name            string
-		request         *writev2.Request
-		expectError     string
-		expectedMetrics pmetric.Metrics
-		expectedStats   remote.WriteResponseStats
+		name                 string
+		request              *writev2.Request
+		expectError          string
+		expectedMetrics      pmetric.Metrics
+		expectedStats        remote.WriteResponseStats
+		buildNameOverride    string
+		buildVersionOverride string
 	}{
 		{
 			name: "duplicated scope name and version",
@@ -149,41 +160,45 @@ func TestTranslateV2(t *testing.T) {
 				Timeseries: []writev2.TimeSeries{
 					{
 						Metadata:   writev2.Metadata{Type: writev2.Metadata_METRIC_TYPE_GAUGE},
-						LabelsRefs: []uint32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 16}, // Same scope: scope_name: scope1. scope_version v1
+						LabelsRefs: []uint32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 16},
 						Samples:    []writev2.Sample{{Value: 1, Timestamp: 1}},
 					},
 					{
 						Metadata:   writev2.Metadata{Type: writev2.Metadata_METRIC_TYPE_GAUGE},
-						LabelsRefs: []uint32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 16}, // Same scope: scope_name: scope1. scope_version v1
+						LabelsRefs: []uint32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 16},
 						Samples:    []writev2.Sample{{Value: 2, Timestamp: 2}},
 					},
 					{
 						Metadata:   writev2.Metadata{Type: writev2.Metadata_METRIC_TYPE_GAUGE},
-						LabelsRefs: []uint32{1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 17, 18}, // Different scope: scope_name: scope2. scope_version v2
+						LabelsRefs: []uint32{1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 17, 18},
 						Samples:    []writev2.Sample{{Value: 3, Timestamp: 3}},
 					},
 				},
 			},
+			// Expected:
+			// - The first two timeseries have explicit otel_scope values "scope1"/"v1" and yield gauge datapoints with {"d":"e"}.
+			// - The third timeseries uses "scope2"/"v2" and yields a gauge datapoint with {"foo":"bar"}.
 			expectedMetrics: func() pmetric.Metrics {
 				expected := pmetric.NewMetrics()
-				rm1 := expected.ResourceMetrics().AppendEmpty()
-				rmAttributes1 := rm1.Resource().Attributes()
-				rmAttributes1.PutStr("service.namespace", "service-x")
-				rmAttributes1.PutStr("service.name", "test")
-				rmAttributes1.PutStr("service.instance.id", "107cn001")
-				sm1 := rm1.ScopeMetrics().AppendEmpty()
+				rm := expected.ResourceMetrics().AppendEmpty()
+				parseJobAndInstance(rm.Resource().Attributes(), "service-x/test", "107cn001")
+				// Scope "scope1" for first two timeseries.
+				sm1 := rm.ScopeMetrics().AppendEmpty()
 				sm1.Scope().SetName("scope1")
 				sm1.Scope().SetVersion("v1")
-				sm1Attributes := sm1.Metrics().AppendEmpty().SetEmptyGauge().DataPoints().AppendEmpty().Attributes()
-				sm1Attributes.PutStr("d", "e")
-				sm2Attributes := sm1.Metrics().AppendEmpty().SetEmptyGauge().DataPoints().AppendEmpty().Attributes()
-				sm2Attributes.PutStr("d", "e")
-
-				sm2 := rm1.ScopeMetrics().AppendEmpty()
+				m1 := sm1.Metrics().AppendEmpty().SetEmptyGauge()
+				dp1 := m1.DataPoints().AppendEmpty()
+				dp1.Attributes().PutStr("d", "e")
+				m2 := sm1.Metrics().AppendEmpty().SetEmptyGauge()
+				dp2 := m2.DataPoints().AppendEmpty()
+				dp2.Attributes().PutStr("d", "e")
+				// Scope "scope2" for the third timeseries.
+				sm2 := rm.ScopeMetrics().AppendEmpty()
 				sm2.Scope().SetName("scope2")
 				sm2.Scope().SetVersion("v2")
-				sm3Attributes := sm2.Metrics().AppendEmpty().SetEmptyGauge().DataPoints().AppendEmpty().Attributes()
-				sm3Attributes.PutStr("foo", "bar")
+				m3 := sm2.Metrics().AppendEmpty().SetEmptyGauge()
+				dp3 := m3.DataPoints().AppendEmpty()
+				dp3.Attributes().PutStr("foo", "bar")
 				return expected
 			}(),
 			expectedStats: remote.WriteResponseStats{},
@@ -219,38 +234,33 @@ func TestTranslateV2(t *testing.T) {
 			request: writeV2RequestFixture,
 			expectedMetrics: func() pmetric.Metrics {
 				expected := pmetric.NewMetrics()
-
-				// Resource 1: for job "service-x/test" → namespace "service-x", name "test", instance "107cn001"
+				// For job "service-x/test", no explicit otel_scope is provided.
+				// fall back to BuildInfo defaults.
 				rm1 := expected.ResourceMetrics().AppendEmpty()
-				rm1.Resource().Attributes().PutStr("service.namespace", "service-x")
-				rm1.Resource().Attributes().PutStr("service.name", "test")
-				rm1.Resource().Attributes().PutStr("service.instance.id", "107cn001")
+				parseJobAndInstance(rm1.Resource().Attributes(), "service-x/test", "107cn001")
 				sm1 := rm1.ScopeMetrics().AppendEmpty()
-				sm1.Scope().SetName(buildName)
-				sm1.Scope().SetVersion(buildVersion)
-				// Timeseries 1 gauge metric.
+				sm1.Scope().SetName(defaultBuildName)
+				sm1.Scope().SetVersion(defaultBuildVersion)
+				// Expect 2 separate gauge metrics, one per timeseries.
 				m1 := sm1.Metrics().AppendEmpty().SetEmptyGauge()
 				dp1 := m1.DataPoints().AppendEmpty()
 				dp1.Attributes().PutStr("d", "e")
 				dp1.Attributes().PutStr("foo", "bar")
-				// Timeseries 2 gauge metric.
 				m2 := sm1.Metrics().AppendEmpty().SetEmptyGauge()
 				dp2 := m2.DataPoints().AppendEmpty()
 				dp2.Attributes().PutStr("d", "e")
 				dp2.Attributes().PutStr("foo", "bar")
 
-				// Resource 2: for job "foo" with instance "bar"
+				// For job "foo" with instance "bar", fallback to BuildInfo.
 				rm2 := expected.ResourceMetrics().AppendEmpty()
-				rm2.Resource().Attributes().PutStr("service.name", "foo")
-				rm2.Resource().Attributes().PutStr("service.instance.id", "bar")
+				parseJobAndInstance(rm2.Resource().Attributes(), "foo", "bar")
 				sm2 := rm2.ScopeMetrics().AppendEmpty()
-				sm2.Scope().SetName(buildName)
-				sm2.Scope().SetVersion(buildVersion)
+				sm2.Scope().SetName(defaultBuildName)
+				sm2.Scope().SetVersion(defaultBuildVersion)
 				m3 := sm2.Metrics().AppendEmpty().SetEmptyGauge()
 				dp3 := m3.DataPoints().AppendEmpty()
 				dp3.Attributes().PutStr("d", "e")
 				dp3.Attributes().PutStr("foo", "bar")
-
 				return expected
 			}(),
 			expectedStats: remote.WriteResponseStats{},
@@ -276,24 +286,18 @@ func TestTranslateV2(t *testing.T) {
 			expectedMetrics: func() pmetric.Metrics {
 				expected := pmetric.NewMetrics()
 				rm := expected.ResourceMetrics().AppendEmpty()
-				// For job "service-y/custom", resource attributes are set as follows:
-				rm.Resource().Attributes().PutStr("service.namespace", "service-y")
-				rm.Resource().Attributes().PutStr("service.name", "custom")
-				rm.Resource().Attributes().PutStr("service.instance.id", "instance-1")
+				parseJobAndInstance(rm.Resource().Attributes(), "service-y/custom", "instance-1")
 				sm := rm.ScopeMetrics().AppendEmpty()
-				// Expect the provided scope values.
 				sm.Scope().SetName("custom_scope")
 				sm.Scope().SetVersion("v1.0")
-				m := sm.Metrics().AppendEmpty().SetEmptyGauge()
-				// The datapoint will have no extra attributes because __name__, otel_scope_name/version,
-				// job and instance are filtered out.
-				_ = m.DataPoints().AppendEmpty()
+				_ = sm.Metrics().AppendEmpty().SetEmptyGauge().DataPoints().AppendEmpty()
 				return expected
 			}(),
 			expectedStats: remote.WriteResponseStats{},
 		},
 		{
-			name: "missing otel_scope_name/version falls back to buildName/buildVersion",
+			name: "missing otel_scope_name/version falls back to BuildInfo",
+			// When missing, ls.Get returns "" so the defaults from BuildInfo are preserved.
 			request: &writev2.Request{
 				Symbols: []string{
 					"",                // index 0
@@ -319,25 +323,60 @@ func TestTranslateV2(t *testing.T) {
 			expectedMetrics: func() pmetric.Metrics {
 				expected := pmetric.NewMetrics()
 				rm := expected.ResourceMetrics().AppendEmpty()
-				// parseJobAndInstance splits "service-z/xyz" into namespace "service-z" and name "xyz"
-				rm.Resource().Attributes().PutStr("service.namespace", "service-z")
-				rm.Resource().Attributes().PutStr("service.name", "xyz")
-				rm.Resource().Attributes().PutStr("service.instance.id", "inst-42")
+				parseJobAndInstance(rm.Resource().Attributes(), "service-z/xyz", "inst-42")
 				sm := rm.ScopeMetrics().AppendEmpty()
-				// Since otel_scope_name/version are missing, the code falls back to buildName/buildVersion.
-				sm.Scope().SetName(buildName)
-				sm.Scope().SetVersion(buildVersion)
+				// Expect fallback to default BuildInfo.
+				sm.Scope().SetName(defaultBuildName)
+				sm.Scope().SetVersion(defaultBuildVersion)
 				m := sm.Metrics().AppendEmpty().SetEmptyGauge()
 				dp := m.DataPoints().AppendEmpty()
-				// Expect the attributes from the labels that are added by addDatapoints.
 				dp.Attributes().PutStr("d", "e")
 				dp.Attributes().PutStr("foo", "bar")
 				return expected
 			}(),
 			expectedStats: remote.WriteResponseStats{},
 		},
+		{
+			name: "custom BuildInfo used when no scope provided",
+			// Even if BuildInfo is overridden, if no otel_scope is provided, the overridden defaults are used.
+			buildNameOverride:    "customBuildName",
+			buildVersionOverride: "customBuildVersion",
+			request: &writev2.Request{
+				Symbols: []string{
+					"", "__name__", "metric_custom",
+					"job", "service-custom/svc",
+					"instance", "inst-custom",
+					"a", "b",
+				},
+				Timeseries: []writev2.TimeSeries{
+					{
+						Metadata:   writev2.Metadata{Type: writev2.Metadata_METRIC_TYPE_GAUGE},
+						LabelsRefs: []uint32{1, 2, 3, 4, 5, 6, 7, 8},
+						Samples:    []writev2.Sample{{Value: 42, Timestamp: 100}},
+					},
+				},
+			},
+			expectedMetrics: func() pmetric.Metrics {
+				expected := pmetric.NewMetrics()
+				rm := expected.ResourceMetrics().AppendEmpty()
+				parseJobAndInstance(rm.Resource().Attributes(), "service-custom/svc", "inst-custom")
+				sm := rm.ScopeMetrics().AppendEmpty()
+				// Expect the overridden BuildInfo values.
+				sm.Scope().SetName("customBuildName")
+				sm.Scope().SetVersion("customBuildVersion")
+				m := sm.Metrics().AppendEmpty().SetEmptyGauge()
+				dp := m.DataPoints().AppendEmpty()
+				dp.Attributes().PutStr("a", "b")
+				return expected
+			}(),
+			expectedStats: remote.WriteResponseStats{},
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			if tc.buildNameOverride != "" || tc.buildVersionOverride != "" {
+				prwReceiver.settings.BuildInfo.Description = tc.buildNameOverride
+				prwReceiver.settings.BuildInfo.Version = tc.buildVersionOverride
+			}
 			metrics, stats, err := prwReceiver.translateV2(ctx, tc.request)
 			if tc.expectError != "" {
 				assert.ErrorContains(t, err, tc.expectError)
